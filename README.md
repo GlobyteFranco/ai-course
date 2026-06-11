@@ -4,13 +4,15 @@ Curso práctico de **Ingeniería de Inteligencia Artificial (AI Engineering)**. 
 
 Funciona en **Linux**, **macOS** y **Windows**.
 
+**Versión de Python del proyecto:** `3.11.15`
+
 ---
 
 ## Requisitos previos
 
-| Herramienta | Versión mínima | Descripción |
-|-------------|----------------|-------------|
-| **Python** | 3.10+ (recomendado 3.11) | Entorno de ejecución |
+| Herramienta | Versión | Descripción |
+|-------------|---------|-------------|
+| **Python** | **3.11.15** | Versión usada y probada en este curso |
 | **Git** | Cualquier versión reciente | Clonar el repositorio |
 | **Ollama** | Última estable | LLMs y embeddings en local |
 | **RAM** | 8 GB+ (16 GB recomendado) | Para modelos locales |
@@ -24,17 +26,37 @@ Opcional: **JupyterLab** (incluido en `requirements.txt`) para los notebooks.
 ### 1. Clonar el repositorio
 
 ```bash
-git clone <URL_DEL_REPOSITORIO>
+git clone https://github.com/ederleon-GL/AI-course.git
 cd AI-course
 ```
 
-### 2. Crear entorno virtual
+### 2. Instalar Python 3.11.15
+
+Comprueba si ya lo tienes:
+
+```bash
+python3.11 --version
+# Debe mostrar: Python 3.11.15
+```
+
+Si no está instalado:
+
+| Sistema | Instalación |
+|---------|-------------|
+| **macOS** | `brew install python@3.11` |
+| **Linux (Debian/Ubuntu)** | `sudo apt install python3.11 python3.11-venv python3.11-pip` |
+| **Windows** | Descarga el instalador desde [python.org/downloads](https://www.python.org/downloads/release/python-31115/) y marca **Add Python to PATH** |
+
+> Usa siempre `python3.11` (o `py -3.11` en Windows) para crear el entorno. Otras versiones (3.9, 3.10, 3.12) pueden causar incompatibilidades con `requirements.txt`.
+
+### 3. Crear entorno virtual
 
 #### macOS / Linux
 
 ```bash
-python3 -m venv venv
+python3.11 -m venv venv
 source venv/bin/activate
+python --version          # Python 3.11.15
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
@@ -42,8 +64,9 @@ pip install -r requirements.txt
 #### Windows (PowerShell)
 
 ```powershell
-python -m venv venv
+py -3.11 -m venv venv
 .\venv\Scripts\Activate.ps1
+python --version          # Python 3.11.15
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
@@ -51,8 +74,9 @@ pip install -r requirements.txt
 #### Windows (CMD)
 
 ```cmd
-python -m venv venv
+py -3.11 -m venv venv
 venv\Scripts\activate.bat
+python --version
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
@@ -60,7 +84,7 @@ pip install -r requirements.txt
 > **Nota Windows:** Si PowerShell bloquea la activación del entorno, ejecuta una vez:
 > `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
 
-### 3. Instalar Ollama
+### 4. Instalar Ollama
 
 Descarga e instala Ollama desde [https://ollama.com/download](https://ollama.com/download).
 
@@ -76,7 +100,7 @@ Verifica la instalación:
 ollama --version
 ```
 
-### 4. Descargar modelos necesarios
+### 5. Descargar modelos necesarios
 
 Con Ollama en ejecución, descarga el modelo de embeddings y al menos un LLM:
 
@@ -92,7 +116,7 @@ Modelos LLM alternativos disponibles en la app:
 - `llama3.2:3b`
 - `llama3.2:latest`
 
-### 5. Iniciar el servidor Ollama
+### 6. Iniciar el servidor Ollama
 
 Ollama suele arrancar automáticamente al instalarlo. Si no está activo:
 
@@ -214,6 +238,8 @@ El archivo `.env` está en `.gitignore` y no debe subirse al repositorio.
 
 | Acción | macOS / Linux | Windows (PowerShell) |
 |--------|---------------|----------------------|
+| Verificar Python | `python3.11 --version` | `py -3.11 --version` |
+| Crear entorno | `python3.11 -m venv venv` | `py -3.11 -m venv venv` |
 | Activar entorno | `source venv/bin/activate` | `.\venv\Scripts\Activate.ps1` |
 | Desactivar entorno | `deactivate` | `deactivate` |
 | Instalar deps | `pip install -r requirements.txt` | `pip install -r requirements.txt` |
@@ -268,18 +294,33 @@ pip install ipywidgets
 jupyter labextension enable --py widgetsnbextension   # si usas Jupyter clásico
 ```
 
-### Python 3.9 o inferior
+### Versión de Python incorrecta
 
-El proyecto requiere **Python 3.10+**. Comprueba tu versión:
+El proyecto requiere **Python 3.11.15**. Si `python --version` muestra otra versión, recrea el entorno:
 
 ```bash
-python --version
+# macOS / Linux
+deactivate
+rm -rf venv
+python3.11 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+```powershell
+# Windows (PowerShell)
+deactivate
+Remove-Item -Recurse -Force venv
+py -3.11 -m venv venv
+.\venv\Scripts\Activate.ps1
+pip install -r requirements.txt
 ```
 
 ---
 
 ## Stack tecnológico
 
+- **Python:** 3.11.15
 - **LLMs locales:** [Ollama](https://ollama.com) + LangChain
 - **RAG:** ChromaDB, PyPDF, LangChain
 - **Embeddings:** `nomic-embed-text`
