@@ -332,3 +332,6 @@ pip install -r requirements.txt
 ## Licencia y contribuciones
 
 Material educativo del curso AI Engineering. Para dudas o incidencias, abre un issue en el repositorio o consulta con el instructor del curso.
+
+# ai-course
+AI-Course by Elder
