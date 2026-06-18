@@ -80,7 +80,8 @@ python --version
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
-
+### 3.5. Testear Instalacion
+Utilizar el archivo scripts\test.py
 > **Nota Windows:** Si PowerShell bloquea la activación del entorno, ejecuta una vez:
 > `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
 
@@ -335,3 +336,12 @@ Material educativo del curso AI Engineering. Para dudas o incidencias, abre un i
 
 # ai-course
 AI-Course by Elder
+
+### TAREA
+* Cambiar diccionario por tabla: Hacer notebook igual a tools pero cargar la tabla que esta en data table, ajustar las tools para que hagan la busqueda sobre la tabla en vez del diccionario
+* A partir del csv construir una DB.
+* Revisar lo siguiente: https://docs.langchain.com/oss/python/integrations/tools/pandas
+* Vimos hasta 05_agents/05_pandas_agent_worldcup.ipynb
+* Hacer agentes que...
+* Hacer algo de la funcion...
+* Copiar y pegar todo lo que sacamos de Agus...
