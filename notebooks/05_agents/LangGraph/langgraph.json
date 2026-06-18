@@ -1,0 +1,12 @@
+{
+    "dependencies": [
+        "."
+    ],
+    "graphs": {
+        "agent": "./notebooks/05_agents/LangGraph/src/agents/main.py:agent",
+        "simple": "./notebooks/05_agents/LangGraph/src/agents/simple.py:agent",
+        "rag": "./notebooks/05_agents/LangGraph/src/agents/rag.py:agent",
+        "support": "./notebooks/05_agents/LangGraph/src/agents/support/agent.py:agent"
+    },
+    "env": ".env"
+}
