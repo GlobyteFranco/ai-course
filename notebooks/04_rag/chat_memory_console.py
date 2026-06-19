@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 """
-Chatbot de consola con memoria LangChain usando Gemini (API key en .env).
+Chatbot de consola con memoria LangChain usando OpenAI u Ollama.
 Uso: python chat_memory_console.py
 """
 
 import logging
 import os
 import sys
-import importlib
 from pathlib import Path
 
 # Silenciar aviso de transformers/PyTorch (no usamos modelos HF en este script)
@@ -24,14 +23,15 @@ from langchain_classic.memory import (
     ConversationSummaryBufferMemory,
     ConversationSummaryMemory,
 )
+from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI
 
 # Cargar variables desde .env en la raíz del proyecto
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
-# Gemini
-DEFAULT_GEMINI_MODEL = "gemini-2.0-flash"
-GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
+# OpenAI / Ollama
+DEFAULT_OPENAI_MODEL = "gpt-4o-mini"
+DEFAULT_OLLAMA_MODEL = "llama3.2:3b"
 RESET = "\033[0m"
 TURN_COLORS = ["\033[36m", "\033[32m", "\033[33m", "\033[35m", "\033[34m", "\033[91m"]
 
@@ -88,38 +88,38 @@ def select_memory(llm):
 # Main 
 # ================================================================================================================================
 def main():
-    gemini_api_key = os.getenv("GEMINI_API_KEY")
-    if not gemini_api_key:
-        print("Error: define GEMINI_API_KEY en .env")
-        sys.exit(1)
-    model = os.getenv("GEMINI_MODEL", DEFAULT_GEMINI_MODEL)
-
+    model = os.getenv("OPENAI_MODEL", DEFAULT_OPENAI_MODEL)
     try:
-        google_genai = importlib.import_module("langchain_google_genai")
-        ChatGoogleGenerativeAI = google_genai.ChatGoogleGenerativeAI
-        llm = ChatGoogleGenerativeAI(
-            model=model,
-            temperature=0.3,
-            google_api_key=gemini_api_key,
-        )
-    except ModuleNotFoundError:
-        # Fallback: Gemini endpoint OpenAI-compatible.
         llm = ChatOpenAI(
             model=model,
             temperature=0.3,
-            api_key=gemini_api_key,
-            base_url=GEMINI_BASE_URL,
+            api_key=os.getenv("OPENAI_API_KEY"),
         )
-        print(
-            "Aviso: no está instalado 'langchain-google-genai'. "
-            "Usando Gemini vía endpoint OpenAI-compatible."
+        # Smoke test para forzar credenciales válidas desde el inicio.
+        _ = llm.invoke("ping")
+        provider = "OpenAI"
+    except Exception:
+        model = os.getenv("OLLAMA_MODEL", DEFAULT_OLLAMA_MODEL)
+        llm = ChatOllama(
+            model=model,
+            temperature=0.3,
         )
+        try:
+            _ = llm.invoke("ping")
+            provider = "Ollama"
+        except Exception as ollama_err:
+            print("Error: no se pudo inicializar OpenAI ni Ollama.")
+            print(
+                "Verifica OPENAI_API_KEY o que Ollama esté activo con `ollama serve` "
+                f"y el modelo `{model}` descargado."
+            )
+            raise SystemExit(1) from ollama_err
 
     with suppress_langchain_deprecation_warning():
         memory = select_memory(llm)
         chat = ConversationChain(llm=llm, memory=memory, verbose=False)
 
-    print(f"\nChat iniciado ({model}). Escribe 'salir' para terminar.\n")
+    print(f"\nChat iniciado con {provider} ({model}). Escribe 'salir' para terminar.\n")
 
     turn = 0
     with suppress_langchain_deprecation_warning():
