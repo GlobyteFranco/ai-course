@@ -1,0 +1,110 @@
+PASO A PASO - ERROR: service "ollama" is not running
+Proyecto: AI-course
+
+Objetivo:
+Levantar correctamente el servicio ollama en Docker Compose y luego descargar modelos.
+
+------------------------------------------------------------
+1) IR A LA RAIZ DEL PROYECTO
+------------------------------------------------------------
+cd <ROUTE>
+
+------------------------------------------------------------
+2) LEVANTAR SOLO OLLAMA
+------------------------------------------------------------
+docker compose up -d ollama
+
+------------------------------------------------------------
+3) VERIFICAR ESTADO
+------------------------------------------------------------
+docker compose ps
+
+Resultado esperado:
+- El servicio "ollama" debe aparecer como running/up.
+
+------------------------------------------------------------
+4) SI NO ESTA RUNNING, VER LOGS
+------------------------------------------------------------
+docker compose logs --tail=120 ollama
+
+Si quieres verlo en vivo:
+docker compose logs -f ollama
+
+------------------------------------------------------------
+5) REINICIO LIMPIO DEL SERVICIO OLLAMA
+------------------------------------------------------------
+docker compose rm -sf ollama
+docker compose up -d ollama
+docker compose ps
+
+------------------------------------------------------------
+6) DESCARGAR MODELOS (SOLO CUANDO OLLAMA ESTE RUNNING)
+------------------------------------------------------------
+docker compose exec ollama ollama pull nomic-embed-text
+docker compose exec ollama ollama pull qwen2.5:1.5b
+
+Opcional:
+docker compose exec ollama ollama pull llama3.2:3b
+
+------------------------------------------------------------
+7) LEVANTAR LA APP
+------------------------------------------------------------
+docker compose up -d app
+docker compose ps
+
+Abrir:
+http://localhost:8501
+
+------------------------------------------------------------
+8) SI VUELVE A FALLAR (CHECKLIST RAPIDO)
+------------------------------------------------------------
+A) Docker Desktop encendido
+   - Abre Docker Desktop y confirma que este "Engine running".
+
+B) Puerto ocupado
+   lsof -i :11434
+   - Si sale otro proceso ocupando el puerto, detenlo o cambia el mapeo del compose.
+
+C) Espacio en disco
+   df -h
+   - Si hay poco espacio, libera antes de descargar modelos.
+
+D) Reinicio total del stack
+   docker compose down
+   docker compose up -d --build
+
+------------------------------------------------------------
+9) VALIDACION FINAL
+------------------------------------------------------------
+docker compose ps
+docker compose logs --tail=80 ollama
+docker compose logs --tail=80 app
+
+Esperado:
+- ollama: running
+- app: running
+- acceso web en http://localhost:8501
+
+------------------------------------------------------------
+10) AJUSTES DE DEPENDENCIAS QUE YA FUNCIONARON
+------------------------------------------------------------
+Si durante el build aparece error en pip por versions, usa estos valores en requirements.txt:
+
+- nest-asyncio==1.6.0
+- numpy==1.26.4
+
+Errores que corrigen:
+
+- "No matching distribution found for nest-asyncio==1.7.2"
+- "ResolutionImpossible" por conflicto de numpy con numba/langchain
+
+Luego reconstruye:
+
+docker compose down
+docker compose up -d --build
+
+Si todo sale bien, continua con:
+
+docker compose exec ollama ollama pull nomic-embed-text
+docker compose exec ollama ollama pull qwen2.5:1.5b
+
