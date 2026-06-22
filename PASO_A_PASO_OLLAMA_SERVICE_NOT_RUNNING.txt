@@ -7,7 +7,7 @@ Levantar correctamente el servicio ollama en Docker Compose y luego descargar mo
 ------------------------------------------------------------
 1) IR A LA RAIZ DEL PROYECTO
 ------------------------------------------------------------
-cd "/Users/guane/Documentos/GlogalLogic/AI-course"
+cd <ROUTE>
 
 ------------------------------------------------------------
 2) LEVANTAR SOLO OLLAMA
