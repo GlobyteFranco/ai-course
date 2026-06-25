@@ -47,12 +47,19 @@ WORLD_CUP_SYSTEM_PROMPT = """
 Eres un asistente experto en la Copa del Mundo de la FIFA.
 Responde siempre en espanol y enfocado en partidos, anios, equipos, marcadores y contexto historico del Mundial.
 
-Responde solo mediante datos obtenidos con herramientas MCP.
-- Debes usar herramientas MCP en cada turno antes de responder.
-- No inventes datos; toda respuesta debe basarse en salida MCP.
+Dispones de herramientas MCP con este enfoque:
+- mcp_sql_tool: preguntas estructuradas de partidos/resultados y consultas por anio.
+- mcp_vector_tool: contexto historico, explicaciones y busqueda semantica.
+
+Regla principal:
+- Intenta usar MCP primero. En particular, enruta mentalmente como grafo:
+  - sql para preguntas de resultados/partidos/marcadores por anio.
+  - vector para preguntas historicas o explicativas.
+- Si MCP no esta disponible o falla, responde con el LLM como respaldo.
+- No inventes datos cuando tengas salida MCP; basate en esa salida.
 - Si falta un dato clave (por ejemplo, el anio), pide aclaracion breve.
 
-Si la pregunta no es del Mundial, indicarlo brevemente, pero siempre bajo este flujo basado en MCP.
+Si la pregunta no es del Mundial, indicarlo brevemente.
 """.strip()
 
 
@@ -120,7 +127,11 @@ def init_llm() -> tuple[Any, str, str]:
 def parse_tool_input(tool_call: dict[str, Any]) -> str:
     tool_args = tool_call.get("args", {})
     if isinstance(tool_args, dict):
-        return str(tool_args.get("query", str(tool_args)))
+        if "query" in tool_args:
+            return str(tool_args["query"])
+        if "question" in tool_args:
+            return str(tool_args["question"])
+        return str(tool_args)
     return str(tool_args)
 
 
@@ -205,12 +216,6 @@ def run_chat_turn(
     memory: Any,
     user_input: str,
 ) -> tuple[str, bool]:
-    if not mcp_tools:
-        return (
-            "MCP no esta disponible. Este asistente solo responde mediante herramientas MCP.",
-            False,
-        )
-
     history_context = memory.load_memory_variables({}).get("history", "")
     mcp_mode = "habilitado" if mcp_tools else "deshabilitado"
     messages = [
@@ -234,24 +239,31 @@ def run_chat_turn(
             if not target_tool:
                 continue
 
-            used_mcp = True
-            tool_result = target_tool.invoke(parse_tool_input(tool_call))
-            # OpenAI requiere un ToolMessage ligado al tool_call_id.
-            messages.append(response)
-            messages.append(
-                ToolMessage(
-                    content=str(tool_result),
-                    tool_call_id=tool_call["id"],
+            try:
+                used_mcp = True
+                tool_result = target_tool.invoke(parse_tool_input(tool_call))
+                # OpenAI requiere un ToolMessage ligado al tool_call_id.
+                messages.append(response)
+                messages.append(
+                    ToolMessage(
+                        content=str(tool_result),
+                        tool_call_id=tool_call["id"],
+                    )
                 )
-            )
-            response = llm_with_tools.invoke(messages)
-
-    if not used_mcp:
-        return (
-            "No se ejecuto ninguna herramienta MCP en este turno. "
-            "Reformula tu pregunta para consultar datos del Mundial (por ejemplo, incluye un anio).",
-            False,
-        )
+                response = llm_with_tools.invoke(messages)
+            except Exception as exc:
+                # Si falla MCP, se mantiene flujo de respaldo con LLM.
+                messages.append(
+                    SystemMessage(
+                        content=(
+                            f"MCP fallo para la herramienta {tool_call['name']}: {exc}. "
+                            "Responde con el mejor esfuerzo usando solo tu conocimiento."
+                        )
+                    )
+                )
+                response = llm_with_tools.invoke(messages)
+                used_mcp = False
+                break
 
     return str(response.content), used_mcp
 
